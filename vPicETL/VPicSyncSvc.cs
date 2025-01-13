@@ -3,11 +3,17 @@ using vPicETL.IO;
 
 namespace vPicETL
 {
-  public class VPicSyncSvc(VpicNhtsaClient vpicNhtsaClient, FileStoreDb fileStoreDb, ILogger<VPicSyncSvc> logger)
+  public class VPicSyncSvc(
+    VpicNhtsaClient vpicNhtsaClient,
+    VPicSqlDbCtx vPicSqlDbCtx,
+    FileStoreDb fileStoreDb, 
+    ILogger<VPicSyncSvc> logger)
   {
 
     public async Task EnsureVPicDownloadedAsync(bool overwrite = false)
     {
+
+      await vPicSqlDbCtx.TestIOAsync();
 
       var currResSuccess = await EnsureLoadFromSrcAsync(YearMo.ThisMo, overwrite);
       if(currResSuccess)

@@ -1,4 +1,4 @@
-﻿namespace vPicETL
+﻿namespace vPicETL.Models
 {
 
   public record YearMo(int Year, int Month)
@@ -9,6 +9,10 @@
     public static YearMo LastMo
       => new YearMo(DateTime.UtcNow.AddMonths(-1).Year, DateTime.UtcNow.AddMonths(-1).Month);
 
+    public override string ToString()
+    {
+      return $"{Year}_{Month:D2}";
+    }
   }
 
 }

@@ -1,64 +1,88 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.IO.Compression;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using vPicETL.Models;
 
 namespace vPicETL.IO
 {
   public class FileStoreDb(ILogger<FileStoreDb> logger)
   {
-
     private static readonly string BaseDir =
-      Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+      Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VPicEtl");
 
-    public async void DecompressAndWriteBak(Stream s, YearMo date)
-    {
-      var path = EnsureFolderExists("Source");
+    private string FolderPath(string? relativeFolder = null)
+      => string.IsNullOrWhiteSpace(relativeFolder)
+          ? BaseDir
+          : Path.Combine(BaseDir, relativeFolder);
 
-      logger.LogInformation("BEGIN Writing file to folder: {path}", path);
+    public async Task<string> SaveBakAsync(Stream s, YearMo date)
+    {
+      var folderPath = FolderPath("Source");
+      EnsureFolderExists(folderPath);
+
+      var filePath = BuildPathToBakFile(date);
+
+      logger.LogInformation($"BEGIN Writing file to: {filePath}");
 
       using var zip = new ZipArchive(s);
-      foreach (var entry in zip.Entries)
-      {
-        var dest = Path.Combine(path, entry.Name);
-        if (File.Exists(dest))
-          File.Delete(dest);
-        using var eachStr = entry.Open();
-        using var dStr = File.OpenWrite(dest);
-        await eachStr.CopyToAsync(dStr);
-      }
+      var bakEntry = zip.Entries.First(x => x.Name.EndsWith(".bak"));
+            
+      if (File.Exists(filePath)) 
+        File.Delete(filePath);
+      
+      using var eachStr = bakEntry.Open();
+      using var dStr = File.OpenWrite(filePath);
 
-      logger.LogInformation("FINISHED Writing to folder: {path}", path);
+      await eachStr.CopyToAsync(dStr);
 
+      logger.LogInformation($"FINISHED Writing file: {filePath}" );
+
+      return filePath;
     }
 
-    public bool DoesFileExist(string? relativeFolder, string fileName)
+    public bool BakFileExists(YearMo date)
     {
-      var path = BuildFullPath(relativeFolder, fileName);
+      var path = BuildPathToBakFile(date);
       return File.Exists(path);
     }
 
-    private string EnsureFolderExists(string? relativeFolder = null)
+    public string BuildPathToBakFile(YearMo date, bool ensureFolderExists = false)
     {
-      var path = string.IsNullOrWhiteSpace(relativeFolder)
-        ? BaseDir
-        : Path.Combine(BaseDir, relativeFolder);
+      var path = FolderPath("Source");
+      if(ensureFolderExists)
+        EnsureFolderExists("Source");
 
-      if (!Directory.Exists(path))
-      {
-        Directory.CreateDirectory(path);
-        logger.LogInformation($"FINISHED Creating folder: {path}");        
-      }
+      return Path.Combine(path, date.ToString() + ".bak");
 
-      return path;
     }
-
-    public string BuildFullPath(string? relativeFolder, string fileName)
+    
+    private void EnsureFolderExists(string folderPath)
     {
-      return string.IsNullOrWhiteSpace(relativeFolder)
-        ? Path.Combine(BaseDir, fileName)
-        : Path.Combine(BaseDir, Path.Combine(relativeFolder, fileName));
-    }
+      if (Directory.Exists(folderPath))
+        return;
 
+      Directory.CreateDirectory(folderPath);
+
+      var dInfo = new DirectoryInfo(folderPath);
+
+      var dSecurity = dInfo.GetAccessControl();
+      
+      dSecurity.AddAccessRule(
+        new FileSystemAccessRule(
+          new SecurityIdentifier(WellKnownSidType.WorldSid, null), 
+          FileSystemRights.ReadAndExecute, 
+          InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, 
+          PropagationFlags.NoPropagateInherit, 
+          AccessControlType.Allow));
+
+      dInfo.SetAccessControl(dSecurity);
+
+      logger.LogInformation($"FINISHED Creating folder: {folderPath}");
+
+    }
   }
 
 }

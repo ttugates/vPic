@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using vPicETL;
-using vPicETL.IO;
+using vPic.ETL;
+using vPic.ETL.IO;
+using vPic.SharedLib.IO;
 
 var builder = Host.CreateApplicationBuilder(args);
 

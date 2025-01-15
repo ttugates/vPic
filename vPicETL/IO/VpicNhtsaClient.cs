@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using vPicETL.Models;
+using vPic.SharedLib.Models;
 
-namespace vPicETL.IO
+namespace vPic.ETL.IO
 {
   public class VpicNhtsaClient(HttpClient httpClient, ILogger<VpicNhtsaClient> logger)
   {

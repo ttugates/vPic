@@ -1,10 +1,10 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using System.Runtime.ExceptionServices;
-using vPicETL.Models;
+using vPic.SharedLib.Models;
 
-namespace vPicETL.IO
+
+namespace vPic.SharedLib.IO
 {
   public class VPicSqlDbCtx(ILogger<VPicSqlDbCtx> logger)
   {

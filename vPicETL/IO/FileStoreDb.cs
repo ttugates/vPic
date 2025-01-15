@@ -2,9 +2,9 @@
 using System.IO.Compression;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using vPicETL.Models;
+using vPic.SharedLib.Models;
 
-namespace vPicETL.IO
+namespace vPic.ETL.IO
 {
   public class FileStoreDb(ILogger<FileStoreDb> logger)
   {
@@ -30,16 +30,16 @@ namespace vPicETL.IO
 
       using var zip = new ZipArchive(s);
       var zippedBak = zip.Entries.First(x => x.Name.EndsWith(".bak"));
-            
-      if (File.Exists(filePath)) 
+
+      if (File.Exists(filePath))
         File.Delete(filePath);
-      
+
       using var eachStr = zippedBak.Open();
       using var dStr = File.OpenWrite(filePath);
 
       await eachStr.CopyToAsync(dStr);
 
-      logger.LogInformation($"FINISHED Writing file: {filePath}" );
+      logger.LogInformation($"FINISHED Writing file: {filePath}");
 
       return filePath;
     }
@@ -55,13 +55,13 @@ namespace vPicETL.IO
     public string BuildPathToBakFile(YearMo date, bool ensureFolderExists = false)
     {
       var path = FolderPath("Source");
-      if(ensureFolderExists)
+      if (ensureFolderExists)
         EnsureFolderExists("Source");
 
       return Path.Combine(path, date.ToString() + ".bak");
 
     }
-    
+
     /// <exception cref="Exception"></exception>
     private void EnsureFolderExists(string folderPath)
     {
@@ -73,13 +73,13 @@ namespace vPicETL.IO
       var dInfo = new DirectoryInfo(folderPath);
 
       var dSecurity = dInfo.GetAccessControl();
-      
+
       dSecurity.AddAccessRule(
         new FileSystemAccessRule(
-          new SecurityIdentifier(WellKnownSidType.WorldSid, null), 
-          FileSystemRights.ReadAndExecute, 
-          InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, 
-          PropagationFlags.NoPropagateInherit, 
+          new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+          FileSystemRights.ReadAndExecute,
+          InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
+          PropagationFlags.NoPropagateInherit,
           AccessControlType.Allow));
 
       dInfo.SetAccessControl(dSecurity);

@@ -1,4 +1,4 @@
-﻿namespace vPicETL.Models
+﻿namespace vPic.SharedLib.Models
 {
 
   public record YearMo(int Year, int Month)

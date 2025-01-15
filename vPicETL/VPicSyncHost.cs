@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using vPicETL.IO;
-using vPicETL.Models;
+using vPic.ETL.IO;
+using vPic.SharedLib.IO;
+using vPic.SharedLib.Models;
 
-namespace vPicETL
+
+namespace vPic.ETL
 {
   public class VPicSyncHost(
     IHostApplicationLifetime appLifetime,
@@ -44,7 +46,7 @@ namespace vPicETL
           finally
           {
             Console.WriteLine("FINISHED: Press any key to exit...");
-            Console.ReadLine();
+            Console.ReadKey();
             appLifetime.StopApplication();
           }
         });
@@ -54,7 +56,7 @@ namespace vPicETL
       {
         logger.LogDebug("Application is stopping");
         _cancellationTokenSource?.Cancel();
-      });     
+      });
 
       return Task.CompletedTask;
     }
@@ -93,23 +95,23 @@ namespace vPicETL
         logger.LogWarning($"Failed to load data for {YearMo.ThisMo} and {YearMo.LastMo}");
       }
     }
-    
+
     /// <exception cref="Exception"></exception>
     private async Task<bool> EnsureLoadFromSrcAsync(YearMo date, CancellationToken cancellationToken, bool overwrite = false)
     {
       var dbExistsLocal = await vPicSqlDbCtx.DbExistsAsync(date);
-      if (dbExistsLocal) 
-        return true;    
-      
+      if (dbExistsLocal)
+        return true;
+
       var bakFileExistsRemotely = await vpicNhtsaClient.DbFileExistsAsync(date);
-      if(!bakFileExistsRemotely) 
+      if (!bakFileExistsRemotely)
         return false;
 
       var bakFileExistsLocally = fileStoreDb.BakFileExists(date);
       if (!bakFileExistsLocally || overwrite)
-      {   
+      {
         await using var sStr = await vpicNhtsaClient.DownloadDbFileAsync(date);
-        await fileStoreDb.SaveBakAsync(sStr, date);        
+        await fileStoreDb.SaveBakAsync(sStr, date);
       }
 
       var srcFile = fileStoreDb.BuildPathToBakFile(date);

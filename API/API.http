@@ -1,11 +1,16 @@
 @API_HostAddress = http://localhost:5042
 
-GET {{API_HostAddress}}/todos/
+GET {{API_HostAddress}}/vpic/years
 Accept: application/json
 
 ###
 
-GET {{API_HostAddress}}/todos/1
+GET {{API_HostAddress}}/vpic/makes/2020
+Accept: application/json
+
+###
+
+GET {{API_HostAddress}}/vpic/models/2024/472
 Accept: application/json
 
 ###

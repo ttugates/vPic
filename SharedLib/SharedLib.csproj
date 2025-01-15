@@ -4,7 +4,8 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>vPic.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+        <RootNamespace>vPic.SharedLib</RootNamespace>
+        <AssemblyName>SharedLib</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>

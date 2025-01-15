@@ -11,23 +11,23 @@ namespace vPicETL.IO
     private static string GetSourceURL(YearMo date)
       => "https://vpic.nhtsa.dot.gov/api/" + GetFileName(date);
     
+    /// <exception cref="Exception"></exception>
     public async Task<bool> DbFileExistsAsync(YearMo date)
     {
       var url = GetSourceURL(date);
-      try
-      {
-        var res = await httpClient.SendAsync(
-          new HttpRequestMessage(HttpMethod.Head, url));
 
-        return res.IsSuccessStatusCode;
-      }
-      catch (Exception ex)
-      {
-        logger.LogError(ex, "ERROR in executing DbFileExistsAsync");
+      var res = await httpClient.SendAsync(
+        new HttpRequestMessage(HttpMethod.Head, url));
+
+      if(res.StatusCode == System.Net.HttpStatusCode.NotFound)
         return false;
-      }
+
+      res.EnsureSuccessStatusCode();      
+          
+      return true;
     }
 
+    /// <exception cref="Exception"></exception>
     public async Task<Stream> DownloadDbFileAsync(YearMo date)
     {
       var url = GetSourceURL(date);

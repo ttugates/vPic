@@ -19,8 +19,6 @@ namespace vPicETL
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-      logger.LogDebug($"Starting with arguments: {string.Join(" ", Environment.GetCommandLineArgs())}");
-
       CancellationTokenSource? _cancellationTokenSource = null;
 
       appLifetime.ApplicationStarted.Register(() =>
@@ -36,7 +34,7 @@ namespace vPicETL
           }
           catch (TaskCanceledException)
           {
-            // This means the application is shutting down, so just swallow this exception
+            // This means the application is shutting down
           }
           catch (Exception ex)
           {
@@ -76,7 +74,8 @@ namespace vPicETL
       Environment.ExitCode = _exitCode.GetValueOrDefault(-1);
     }
 
-    public async Task EnsureVPicDownloadedAsync(CancellationToken cancellationToken, bool overwrite = false)
+    /// <exception cref="Exception"></exception>
+    private async Task EnsureVPicDownloadedAsync(CancellationToken cancellationToken, bool overwrite = false)
     {
       var currResSuccess = await EnsureLoadFromSrcAsync(YearMo.ThisMo, cancellationToken, overwrite);
       if (currResSuccess)
@@ -94,7 +93,8 @@ namespace vPicETL
         logger.LogWarning($"Failed to load data for {YearMo.ThisMo} and {YearMo.LastMo}");
       }
     }
-
+    
+    /// <exception cref="Exception"></exception>
     private async Task<bool> EnsureLoadFromSrcAsync(YearMo date, CancellationToken cancellationToken, bool overwrite = false)
     {
       var dbExistsLocal = await vPicSqlDbCtx.DbExistsAsync(date);

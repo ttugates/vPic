@@ -18,6 +18,7 @@ namespace vPicETL.IO
           ? BaseDir
           : Path.Combine(BaseDir, relativeFolder);
 
+    /// <exception cref="Exception"></exception>
     public async Task<string> SaveBakAsync(Stream s, YearMo date)
     {
       var folderPath = FolderPath("Source");
@@ -28,12 +29,12 @@ namespace vPicETL.IO
       logger.LogInformation($"BEGIN Writing file to: {filePath}");
 
       using var zip = new ZipArchive(s);
-      var bakEntry = zip.Entries.First(x => x.Name.EndsWith(".bak"));
+      var zippedBak = zip.Entries.First(x => x.Name.EndsWith(".bak"));
             
       if (File.Exists(filePath)) 
         File.Delete(filePath);
       
-      using var eachStr = bakEntry.Open();
+      using var eachStr = zippedBak.Open();
       using var dStr = File.OpenWrite(filePath);
 
       await eachStr.CopyToAsync(dStr);
@@ -43,12 +44,14 @@ namespace vPicETL.IO
       return filePath;
     }
 
+    /// <exception cref="Exception"></exception>
     public bool BakFileExists(YearMo date)
     {
       var path = BuildPathToBakFile(date);
       return File.Exists(path);
     }
 
+    /// <exception cref="Exception"></exception>
     public string BuildPathToBakFile(YearMo date, bool ensureFolderExists = false)
     {
       var path = FolderPath("Source");
@@ -59,6 +62,7 @@ namespace vPicETL.IO
 
     }
     
+    /// <exception cref="Exception"></exception>
     private void EnsureFolderExists(string folderPath)
     {
       if (Directory.Exists(folderPath))

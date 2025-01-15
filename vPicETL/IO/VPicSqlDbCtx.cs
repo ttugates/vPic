@@ -8,21 +8,20 @@ namespace vPicETL.IO
 {
   public class VPicSqlDbCtx(ILogger<VPicSqlDbCtx> logger)
   {
-    private const string ConnStr 
+    private const string ConnStr
       = "Data Source=localhost\\SQLEXPRESS;Initial Catalog=master;Integrated Security=SSPI;TrustServerCertificate=True";
-    
-    private string GetVPicDataDBName(YearMo date) 
+
+    private string GetVPicDataDBName(YearMo date)
       => $"VPicData_{date.Year}_{date.Month:D2}";
 
+    /// <exception cref="Exception"></exception>
     public async Task CreateDBAsync(YearMo date, string sourceFilePath)
     {
       var dbName = GetVPicDataDBName(date);
-  
-      try
-      {
-        await using var con = await GetConnectionAsync();
 
-        string restoreSQL = $"""
+      await using var con = await GetConnectionAsync();
+
+      string restoreSQL = $"""
           DECLARE @mdfLocation nvarchar(256) = CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS nvarchar(200)) + '{dbName}.mdf';
 
           DECLARE @ldfLocation nvarchar(256) = CAST(SERVERPROPERTY('InstanceDefaultLogPath') AS nvarchar(200)) + '{dbName}.ldf';
@@ -34,19 +33,13 @@ namespace vPicETL.IO
             MOVE 'vPICList_Lite1_log' TO @ldfLocation;
           """;
 
-        logger.LogInformation("LOADING new SQL database: " + dbName);
-        await con.ExecuteAsync(restoreSQL);
-        logger.LogInformation("SUCCESS Created " + dbName);
-      }
-      catch (Exception ex)
-      {
-        logger.LogError(ex, "Error executing Create DB: ");
-        ExceptionDispatchInfo.Capture(ex).Throw();
-        throw;
-      }
+      logger.LogInformation("LOADING new SQL database: " + dbName);
+      await con.ExecuteAsync(restoreSQL);
+      logger.LogInformation("SUCCESS Created " + dbName);
 
     }
 
+    /// <exception cref="Exception"></exception>
     public async Task<bool> DbExistsAsync(YearMo date)
     {
       var dbName = GetVPicDataDBName(date);
@@ -56,8 +49,9 @@ namespace vPicETL.IO
 
       await using var con = await GetConnectionAsync();
       return await con.ExecuteScalarAsync<bool>(sql);
-    }    
-    
+    }
+
+    /// <exception cref="Exception"></exception>
     private async Task<SqlConnection> GetConnectionAsync()
     {
       var con = new SqlConnection(ConnStr);

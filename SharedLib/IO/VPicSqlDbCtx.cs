@@ -73,6 +73,23 @@ namespace vPic.SharedLib.IO
       return res.AsList();
     }
 
+    public async Task<List<VehicleSpec>> DecodeVinToVehicleSpecsAsync(string vin)
+    {
+      var dbName = GetVPicDataDBName(CurrentDb);
+
+      await using var con = await GetConnectionAsync();
+
+      var sql = $"""
+                [{dbName}].[dbo].[spVinDecode] @vin
+                """;
+
+      var res = await con.QueryAsync<LooseVehicleSpec>(sql, new { vin });
+      return res
+        .Where(x => x.GroupName != null)
+        .Select(x => new VehicleSpec(x.GroupName!, x.Variable, x.Value))
+        .ToList();
+    }
+
     public async Task CreateDBAsync(YearMo date, string sourceFilePath)
     {
       var dbName = GetVPicDataDBName(date);

@@ -23,6 +23,9 @@ namespace API
       vPicApi.MapGet("/models/{year}/{makeId}", async (VPicSqlDbCtx dbCtx, int year, int makeId)
         => await dbCtx.GetModelsAsync(year, makeId));
 
+      vPicApi.MapGet("/vehicle_specifications/{vin}", async (VPicSqlDbCtx dbCtx, string vin)
+        => await dbCtx.DecodeVinToVehicleSpecsAsync(vin));
+
       app.Run();
     }
   }

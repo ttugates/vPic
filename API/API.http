@@ -14,3 +14,8 @@ GET {{API_HostAddress}}/vpic/models/2024/472
 Accept: application/json
 
 ###
+
+GET {{API_HostAddress}}/vpic/vehicle_specifications/1GKKNPLS3MZ188177
+Accept: application/json
+
+###

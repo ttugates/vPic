@@ -19,3 +19,13 @@ GET {{API_HostAddress}}/vpic/vehicle_specifications/1GKKNPLS3MZ188177
 Accept: application/json
 
 ###
+
+GET {{API_HostAddress}}/vpic/vin_schema_ids/2021/472/1855
+Accept: application/json
+
+###
+
+GET {{API_HostAddress}}/vpic/engine_optoins/21700
+Accept: application/json
+
+###

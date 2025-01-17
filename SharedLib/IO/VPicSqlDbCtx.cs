@@ -6,7 +6,7 @@ using vPic.SharedLib.Models;
 
 namespace vPic.SharedLib.IO
 {
-  public class VPicSqlDbCtx(ILogger<VPicSqlDbCtx> logger)
+  public partial class VPicSqlDbCtx(ILogger<VPicSqlDbCtx> logger)
   {
     private const string ConnStr
       = "Data Source=localhost\\SQLEXPRESS;Initial Catalog=master;Integrated Security=SSPI;TrustServerCertificate=True";
@@ -72,6 +72,35 @@ namespace vPic.SharedLib.IO
       var res = await con.QueryAsync<Model>(sql, new {year, makeId });
       return res.AsList();
     }
+    
+    // Need to determine if this ever returns > 1 result and even 0 results;
+    public async Task<List<VinSchemaIds>> GetVinSchemaIdsAsync(int year, int makeId, int modelId)
+    {
+      var dbName = GetVPicDataDBName(CurrentDb);
+
+      await using var con = await GetConnectionAsync();
+
+      var sql = $"""
+        SELECT * FROM [{dbName}].[dbo].[fGetVinSchemaIdWmiIdFromYMM](@year, @makeId, @modelId);
+        """;
+
+      var res = await con.QueryAsync<VinSchemaIds>(sql, new { year, makeId, modelId });
+      return res.AsList();
+    }
+    
+    public async Task<List<EngineOptions>> GetEngineOptionsAsync(int vinSchemaId)
+    {
+      var dbName = GetVPicDataDBName(CurrentDb);
+
+      await using var con = await GetConnectionAsync();
+
+      var sql = $"""
+        SELECT * FROM [{dbName}].[dbo].[fGetEngineOptions](@vinSchemaId);
+        """;
+
+      var res = await con.QueryAsync<EngineOptions>(sql, new { vinSchemaId });
+      return res.AsList();
+    }
 
     public async Task<List<VehicleSpec>> DecodeVinToVehicleSpecsAsync(string vin)
     {
@@ -86,7 +115,7 @@ namespace vPic.SharedLib.IO
       var res = await con.QueryAsync<LooseVehicleSpec>(sql, new { vin });
       return res
         .Where(x => x.GroupName != null)
-        .Select(x => new VehicleSpec(x.GroupName!, x.Variable, x.Value))
+        .Select(x => new VehicleSpec(x.GroupName!, x.Variable, x.AttributeId, x.ElementId, x.Value))
         .ToList();
     }
 

@@ -1,0 +1,25 @@
+<mat-card appearance="outlined" id="lookup-card">
+  <mat-card-content>
+
+    <mat-form-field appearance="outline"
+      id="vin-form-field">
+      <mat-label>VIN Decode</mat-label>
+      <input matInput placeholder="" 
+        [(ngModel)]="vinInput"
+        (ngModelChange)="validateVinInput($event)">
+        @if(isVinMinimallyValid) {
+          <mat-icon matSuffix style="color: green;">check_small</mat-icon>
+        }
+    </mat-form-field>
+    <button mat-fab 
+      (click)="onClickDecodeVIN()"
+      class="btn-next-to-input">
+      <mat-icon>send</mat-icon>
+    </button>
+    <button mat-fab 
+      (click)="onClickTestInsertVIN()"
+      class="btn-next-to-input">
+      <mat-icon>star</mat-icon>
+    </button>
+  </mat-card-content>
+</mat-card> 

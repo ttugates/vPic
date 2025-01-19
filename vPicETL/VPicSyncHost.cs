@@ -31,7 +31,8 @@ namespace vPic.ETL
         {
           try
           {
-            await EnsureVPicDownloadedAsync(cancellationToken);
+            // await EnsureVPicDownloadedAsync(cancellationToken);
+            await ValidateDataAssumptionsBruteAsync();
             _exitCode = 0;
           }
           catch (TaskCanceledException)
@@ -118,6 +119,39 @@ namespace vPic.ETL
       await vPicSqlDbCtx.CreateDBAsync(date, srcFile);
 
       return true;
+    }
+
+    private async Task ValidateDataAssumptionsBruteAsync()
+    {
+      var errors = new List<(string YMM, int pKeysCount, int vsIdsCount)>();
+      int i = 0;
+
+      var years = await vPicSqlDbCtx.GetYearsAsync();
+      foreach (var year in years)
+      {
+        var makes = await vPicSqlDbCtx.GetMakesAsync(year);
+        foreach (var make in makes)
+        {
+          var models = await vPicSqlDbCtx.GetModelsAsync(year, make.Id);
+          foreach (var model in models)
+          {
+            var vinSchemaId = await vPicSqlDbCtx.GetVinSchemaIdsAsync(year, make.Id, model.Id);
+            var vsIds = vinSchemaId.Select(x => x.VinSchemAId).Distinct().ToList();
+            var pIds = vinSchemaId.Select(x => x.PatternKeys).Distinct().ToList();
+
+            i++;
+            if (vsIds.Count != 1)
+              errors.Add(($"{year}-{make.Id}-{model.Id}", pIds.Count, vsIds.Count));
+
+            if (i % 250 == 0)
+            {
+              errors = errors.OrderBy(x => x.pKeysCount + x.vsIdsCount).ToList();
+               Console.WriteLine($"Processed: {i}, Errors: {errors.Count}");
+            }
+          }
+        }
+
+      }
     }
   }
 }

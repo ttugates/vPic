@@ -1,0 +1,25 @@
+:host {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: grey;
+
+  #lookup-card {
+    min-width: 400px;
+    max-width: 80vw;
+    min-height: 800px;
+    max-height: 80vh; 
+  } 
+
+  .btn-next-to-input {
+    margin-left: 12px;
+    top: 4px;
+  }  
+
+  #vin-form-field {
+    min-width: 250px;
+  }
+ 
+}
+
